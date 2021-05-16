@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 import time
 import matplotlib.pyplot as plt
 import string
@@ -18,7 +19,8 @@ class GeneticDrawing:
         
         #start with an empty black img
         self.imgBuffer = [np.zeros((self.img_grey.shape[0], self.img_grey.shape[1]), np.uint8)]
-        
+        # self.imgBuffer.append(np.zeros((self.img_grey.shape[0], self.img_grey.shape[1]), np.uint8))
+
     def generate(self, stages=10, generations=100, brushstrokesCount=10, show_progress_imgs=True):
         for s in range(stages):
             #initialize new DNA
@@ -29,7 +31,7 @@ class GeneticDrawing:
             self.myDNA = DNA(self.img_grey.shape, 
                              self.img_grads, 
                              self.calcBrushRange(s, stages), 
-                             canvas=self.imgBuffer[-1], 
+                             canvas=self.imgBuffer[0], 
                              sampling_mask=sampling_mask)
             self.myDNA.initRandom(self.img_grey, brushstrokesCount, self.seed + time.time() + s)
             #evolve DNA
@@ -41,7 +43,11 @@ class GeneticDrawing:
                     #plt.imshow(sampling_mask, cmap='gray')
                     plt.imshow(self.myDNA.get_cached_image(), cmap='gray')
                     plt.show()
-            self.imgBuffer.append(self.myDNA.get_cached_image())
+            
+            # self.imgBuffer[0]= self.imgBuffer[1]
+            self.imgBuffer[0]= self.myDNA.get_cached_image()
+            cv2.imwrite(os.path.join("data/out", f"{s:05d}.png"), self.imgBuffer[0])
+            print('\nProgress', (s*100)/stages, '\n')
         return self.myDNA.get_cached_image()
     
     def calcBrushRange(self, stage, total_stages):
